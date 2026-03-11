@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mr. T's AI Class</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body,
+        html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+        }
+
+        /* ===== DOOR VIEW ===== */
+        #door-view {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #87CEEB 0%, #E0F6FF 50%, #90EE90 100%);
+            z-index: 1000;
+            overflow: hidden;
+        }
+
+        .building-container {
+            perspective: 1200px;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .school-building {
+            position: relative;
+            width: 400px;
+            height: 450px;
+            cursor: pointer;
+            filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.2));
+        }
+
+        /* Building body */
+        .building-body {
+            position: absolute;
+            width: 320px;
+            height: 300px;
+            background: linear-gradient(to right, #D2691E, #CD853F);
+            border: 4px solid #8B4513;
+            bottom: 0;
+            left: 40px;
+            border-radius: 0 0 20px 20px;
+        }
+
+        /* Roof */
+        .roof {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-left: 180px solid transparent;
+            border-right: 180px solid transparent;
+            border-bottom: 100px solid #DC143C;
+            top: 30px;
+            left: 20px;
+            z-index: 10;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+        }
+
+        .roof::after {
+            content: '';
+            position: absolute;
+            width: 360px;
+            height: 30px;
+            background: #B22222;
+            top: 100px;
+            left: -180px;
+        }
+
+        /* Flag on roof */
+        .flag-pole {
+            position: absolute;
+            width: 4px;
+            height: 60px;
+            background: #333;
+            top: 20px;
+            left: 198px;
+            z-index: 15;
+        }
+
+        .flag {
+            position: absolute;
+            width: 50px;
+            height: 35px;
+            background: #FFD700;
+            border: 2px solid #FFA500;
+            top: 18px;
+            left: 202px;
+            border-radius: 5px;
+            z-index: 15;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: #FF6347;
+        }
+
+        /* Windows */
+        .window {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: #87CEEB;
+            border: 3px solid #4A4A4A;
+            border-radius: 5px;
+        }
+
+        .window::before,
+        .window::after {
+            content: '';
+            position: absolute;
+            background: #4A4A4A;
+        }
+
+        .window::before {
+            width: 2px;
+            height: 100%;
+            left: 50%;
+            top: 0;
+        }
+
+        .window::after {
+            height: 2px;
+            width: 100%;
+            left: 0;
+            top: 50%;
+        }
+
+        .w1 {
+            top: 60px;
+            left: 60px;
+        }
+
+        .w2 {
+            top: 60px;
+            left: 140px;
+        }
+
+        .w3 {
+            top: 60px;
+            right: 60px;
+        }
+
+        .w4 {
+            top: 140px;
+            left: 60px;
+        }
+
+        .w5 {
+            top: 140px;
+            left: 140px;
+        }
+
+        .w6 {
+            top: 140px;
+            right: 60px;
+        }
+
+        /* Door */
+        .door {
+            position: absolute;
+            width: 80px;
+            height: 120px;
+            background: linear-gradient(to right, #8B4513, #A0522D);
+            border: 3px solid #654321;
+            bottom: 20px;
+            left: 160px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.2s;
+            transform-style: preserve-3d;
+            z-index: 5;
+            border-radius: 5px;
+        }
+
+        .door:hover {
+            transform: scale(1.1);
+        }
+
+        .door-knob {
+            position: absolute;
+            right: 12px;
+            width: 12px;
+            height: 12px;
+            background: radial-gradient(circle at 30% 30%, #FFD700, #DAA520);
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .door-sign {
+            text-align: center;
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+            line-height: 1.2;
+        }
+
+        .door.opening {
+            animation: doorOpen 1.2s ease-in-out forwards;
+        }
+
+        @keyframes doorOpen {
+            0% {
+                transform: rotateY(0deg) scaleX(1);
+            }
+
+            50% {
+                transform: rotateY(70deg) scaleX(1.2);
+            }
+
+            100% {
+                transform: rotateY(90deg) scaleX(15);
+                opacity: 0;
+            }
+        }
+
+        /* Chimney */
+        .chimney {
+            position: absolute;
+            width: 30px;
+            height: 80px;
+            background: linear-gradient(to right, #8B4513, #A0522D);
+            border: 2px solid #654321;
+            top: 40px;
+            right: 50px;
+            border-radius: 3px;
+        }
+
+        /* ===== CLASSROOM VIEW ===== */
+        #classroom-view {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, #87CEEB 0%, #E0F6FF 100%);
+            display: none;
+            flex-direction: column;
+            z-index: 999;
+            overflow-y: auto;
+        }
+
+        .classroom-header {
+            text-align: center;
+            padding: 30px 20px;
+            color: #333;
+        }
+
+        .classroom-header h1 {
+            font-size: 48px;
+            margin-bottom: 10px;
+            color: #1a1a1a;
+        }
+
+        .classroom-header p {
+            font-size: 18px;
+            color: #666;
+        }
+
+        .classroom-content {
+            flex: 1;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            padding: 40px 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .subject-block {
+            width: 250px;
+            height: 280px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+        }
+
+        .subject-block:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.25);
+            border-color: #009efd;
+        }
+
+        .subject-icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+        }
+
+        .subject-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1a1a1a;
+            margin-bottom: 10px;
+        }
+
+        .subject-desc {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* ===== DETAIL VIEW ===== */
+        #detail-view {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0066cc 0%, #1a9fff 100%);
+            display: none;
+            flex-direction: column;
+            z-index: 998;
+            overflow-y: auto;
+        }
+
+        /* Different color schemes for each detail view */
+        #detail-view.imagegen-theme {
+            background: linear-gradient(135deg, #ff9500 0%, #ffb84d 100%);
+        }
+
+        #detail-view.aisongs-theme {
+            background: linear-gradient(135deg, #00a86b 0%, #00d084 100%);
+        }
+
+        #detail-view.videocreation-theme {
+            background: linear-gradient(135deg, #d32f2f 0%, #000000 100%);
+        }
+
+        #detail-view.customsoftware-theme {
+            background: linear-gradient(135deg, #9c27b0 0%, #000000 100%);
+        }
+
+        .detail-header {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .back-button {
+            background: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-right: 20px;
+            transition: all 0.3s;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.8);
+            transform: scale(1.05);
+        }
+
+        .detail-header h2 {
+            color: white;
+            font-size: 36px;
+        }
+
+        .detail-content {
+            flex: 1;
+            padding: 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .detail-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .detail-section h3 {
+            font-size: 28px;
+            margin-bottom: 15px;
+        }
+
+        #detail-view.chatbots-theme .detail-section h3 {
+            color: #0066cc;
+        }
+
+        #detail-view.imagegen-theme .detail-section h3 {
+            color: #ff9500;
+        }
+
+        #detail-view.aisongs-theme .detail-section h3 {
+            color: #00a86b;
+        }
+
+        #detail-view.videocreation-theme .detail-section h3 {
+            color: #d32f2f;
+        }
+
+        #detail-view.customsoftware-theme .detail-section h3 {
+            color: #9c27b0;
+        }
+
+        .detail-section p {
+            color: #333;
+            font-size: 16px;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+
+        .detail-section ul {
+            color: #333;
+            font-size: 16px;
+            line-height: 1.8;
+            margin-left: 20px;
+        }
+
+        .detail-section li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- DOOR VIEW -->
+    <div id="door-view">
+        <div class="building-container">
+            <div class="school-building" onclick="openDoor()">
+                <div class="roof"></div>
+                <div class="flag-pole"></div>
+                <div class="flag">🎓</div>
+                <div class="building-body">
+                    <div class="window w1"></div>
+                    <div class="window w2"></div>
+                    <div class="window w3"></div>
+                    <div class="window w4"></div>
+                    <div class="window w5"></div>
+                    <div class="window w6"></div>
+                    <div class="door" onclick="openDoor()">
+                        <div class="door-knob"></div>
+                        <div class="door-sign">Mr. T's<br>AI Class</div>
+                    </div>
+                </div>
+                <div class="chimney"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CLASSROOM VIEW -->
+    <div id="classroom-view">
+        <div class="classroom-header">
+            <h1>Welcome to Mr. T's AI Class</h1>
+            <p>Select a subject to learn more</p>
+        </div>
+        <div class="classroom-content">
+            <div class="subject-block" onclick="showDetail('chatbots')">
+                <div class="subject-icon">💬</div>
+                <div class="subject-title">Chat Bots</div>
+                <div class="subject-desc">Conversational AI and natural language processing</div>
+            </div>
+
+            <div class="subject-block" onclick="showDetail('image-gen')">
+                <div class="subject-icon">🎨</div>
+                <div class="subject-title">Image Generation</div>
+                <div class="subject-desc">Creating images with AI models</div>
+            </div>
+
+            <div class="subject-block" onclick="showDetail('ai-songs')">
+                <div class="subject-icon">🎵</div>
+                <div class="subject-title">AI Songs</div>
+                <div class="subject-desc">Music creation and audio synthesis</div>
+            </div>
+
+            <div class="subject-block" onclick="showDetail('video-creation')">
+                <div class="subject-icon">🎬</div>
+                <div class="subject-title">Video Creation</div>
+                <div class="subject-desc">AI-powered video generation and editing</div>
+            </div>
+
+            <div class="subject-block" onclick="showDetail('custom-software')">
+                <div class="subject-icon">⚙️</div>
+                <div class="subject-title">Custom Software</div>
+                <div class="subject-desc">Building AI solutions and applications</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DETAIL VIEW -->
+    <div id="detail-view">
+        <div class="detail-header">
+            <button class="back-button" onclick="backToClassroom()">← Back</button>
+            <h2 id="detail-title"></h2>
+        </div>
+        <div class="detail-content" id="detail-content">
+            <!-- Content will be inserted here -->
+        </div>
+    </div>
+
+    <script>
+        const contentData = {
+            'chatbots': {
+                title: '💬 Chat Bots',
+                content: `
+                    <div class="detail-section">
+                        <h3>What are Chat Bots?</h3>
+                        <p>Chat bots are AI systems designed to simulate conversation with users. They use natural language processing to understand and respond to human input.</p>
+                    </div>
+                    <div class="detail-section">
+                        <h3>Key Concepts</h3>
+                        <ul>
+                            <li><strong>Natural Language Processing (NLP):</strong> Enables computers to understand and interpret human language</li>
+                            <li><strong>Machine Learning:</strong> Allows bots to improve from experience and interactions</li>
+                            <li><strong>Intent Recognition:</strong> Identifying what the user wants to accomplish</li>
+                            <li><strong>Context Understanding:</strong> Maintaining conversation history and context</li>
+                        </ul>
+                    </div>
+                    <div class="detail-section">
+                        <h3>Real-World Applications</h3>
+                        <ul>
+                            <li>Customer service and support</li>
+                            <li>Virtual assistants (Alexa, Siri, Google Assistant)</li>
+                            <li>Healthcare chatbots for symptom checking</li>
+                            <li>Educational tutoring systems</li>
+                            <li>E-commerce shopping assistants</li>
+                        </ul>
+                    </div>
+                `
+            },
+            'image-gen': {
+                title: '🎨 Image Generation',
+                content: `
+                    <div class="detail-section">
+                        <h3>What is Image Generation?</h3>
+                        <p>Image generation is the process of creating visual content using AI models. These systems can generate new images from text descriptions or modify existing images.</p>
+                    </div>
+                    <div class="detail-section">
+                        <h3>Popular Techniques</h3>
+                        <ul>
+                            <li><strong>Generative Adversarial Networks (GANs):</strong> Two networks competing to generate realistic images</li>
+                            <li><strong>Diffusion Models:</strong> Creating images by reducing noise iteratively</li>
+                            <li><strong>Transformers:</strong> Processing text prompts to guide image creation</li>
+                            <li><strong>Style Transfer:</strong> Applying artistic styles to images</li>
+                        </ul>
+                    </div>
+                    <div class="detail-section">
+                        <h3>Real-World Applications</h3>
+                        <ul>
+                            <li>Art and design creation</li>
+                            <li>Marketing and advertising content</li>
+                            <li>Video game asset generation</li>
+                            <li>Medical imaging and diagnosis</li>
+                            <li>Product visualization and mockups</li>
+                        </ul>
+                    </div>
+                `
+            },
+            'ai-songs': {
+                title: '🎵 AI Songs',
+                content: `
+                    <div class="detail-section">
+                        <h3>What is AI Music Generation?</h3>
+                        <p>AI music generation involves using machine learning algorithms to create, compose, or modify music. These systems can generate melodies, harmonies, and complete compositions.</p>
+                    </div>
+                    <div class="detail-section">
+                        <h3>Key Technologies</h3>
+                        <ul>
+                            <li><strong>Neural Networks:</strong> Learning patterns from existing music</li>
+                            <li><strong>Recurrent Neural Networks (RNNs):</strong> Generating sequences note by note</li>
+                            <li><strong>Transformers:</strong> Understanding long-term musical structure</li>
+                            <li><strong>Audio Synthesis:</strong> Converting digital signals to sound</li>
+                        </ul>
+                    </div>
+                    <div class="detail-section">
+                        <h3>Real-World Applications</h3>
+                        <ul>
+                            <li>Background music for videos and games</li>
+                            <li>Personalized music composition</li>
+                            <li>Soundtrack generation for films</li>
+                            <li>Music production tools and plugins</li>
+                            <li>Real-time music adaptation in interactive media</li>
+                        </ul>
+                    </div>
+                `
+            },
+            'video-creation': {
+                title: '🎬 Video Creation',
+                content: `
+                    <div class="detail-section">
+                        <h3>What is AI Video Creation?</h3>
+                        <p>AI video creation involves using artificial intelligence to generate, edit, or enhance video content. This includes everything from creating videos from text descriptions to automatically editing footage.</p>
+                    </div>
+                    <div class="detail-section">
+                        <h3>Key Technologies</h3>
+                        <ul>
+                            <li><strong>Text-to-Video Models:</strong> Generating videos from text descriptions</li>
+                            <li><strong>Video Synthesis:</strong> Creating new video content frame by frame</li>
+                            <li><strong>Video Editing AI:</strong> Automated cutting, effects, and transitions</li>
+                            <li><strong>Deepfakes:</strong> Face and voice synthesis (with ethical considerations)</li>
+                        </ul>
+                    </div>
+                    <div class="detail-section">
+                        <h3>Real-World Applications</h3>
+                        <ul>
+                            <li>Social media content creation</li>
+                            <li>Marketing and promotional videos</li>
+                            <li>Educational and tutorial content</li>
+                            <li>Visual effects and animation</li>
+                            <li>Video accessibility (auto-captioning, descriptions)</li>
+                        </ul>
+                    </div>
+                `
+            },
+            'custom-software': {
+                title: '⚙️ Custom Software',
+                content: `
+                    <div class="detail-section">
+                        <h3>What is Custom AI Software?</h3>
+                        <p>Custom AI software involves building tailored AI solutions for specific problems and use cases. This can range from machine learning models to complete applications powered by AI.</p>
+                    </div>
+                    <div class="detail-section">
+                        <h3>Development Areas</h3>
+                        <ul>
+                            <li><strong>Machine Learning Models:</strong> Training models for prediction and classification</li>
+                            <li><strong>Data Processing:</strong> Preparing and analyzing large datasets</li>
+                            <li><strong>API Development:</strong> Building interfaces to AI services</li>
+                            <li><strong>Automation Solutions:</strong> Creating AI-powered workflows</li>
+                            <li><strong>Computer Vision:</strong> Building systems that understand images and video</li>
+                        </ul>
+                    </div>
+                    <div class="detail-section">
+                        <h3>Real-World Applications</h3>
+                        <ul>
+                            <li>Business process automation</li>
+                            <li>Predictive analytics and forecasting</li>
+                            <li>Recommendation systems</li>
+                            <li>Quality control and inspection</li>
+                            <li>Custom conversational interfaces</li>
+                        </ul>
+                    </div>
+                `
+            }
+        };
+
+        function openDoor() {
+            const doorView = document.getElementById('door-view');
+            const door = document.querySelector('.door');
+
+            door.classList.add('opening');
+
+            setTimeout(() => {
+                doorView.style.display = 'none';
+                document.getElementById('classroom-view').style.display = 'flex';
+            }, 1200);
+        }
+
+        function showDetail(subject) {
+            const data = contentData[subject];
+            const detailView = document.getElementById('detail-view');
+
+            document.getElementById('detail-title').textContent = data.title;
+            document.getElementById('detail-content').innerHTML = data.content;
+
+            // Remove any existing theme classes
+            detailView.classList.remove('chatbots-theme', 'imagegen-theme', 'aisongs-theme', 'videocreation-theme', 'customsoftware-theme');
+
+            // Add the appropriate theme class
+            const themeMap = {
+                'chatbots': 'chatbots-theme',
+                'image-gen': 'imagegen-theme',
+                'ai-songs': 'aisongs-theme',
+                'video-creation': 'videocreation-theme',
+                'custom-software': 'customsoftware-theme'
+            };
+
+            if (themeMap[subject]) {
+                detailView.classList.add(themeMap[subject]);
+            }
+
+            document.getElementById('classroom-view').style.display = 'none';
+            detailView.style.display = 'flex';
+        }
+
+        function backToClassroom() {
+            document.getElementById('detail-view').style.display = 'none';
+            document.getElementById('classroom-view').style.display = 'flex';
+        }
+    </script>
+</body>
+
+</html>
